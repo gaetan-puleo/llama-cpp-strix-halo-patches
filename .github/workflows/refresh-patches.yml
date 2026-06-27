@@ -30,8 +30,6 @@ jobs:
           fetch-depth: 0
 
       - name: Generate patches
-        env:
-          FORK_REPO_TOKEN: ${{ secrets.FORK_REPO_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -40,12 +38,7 @@ jobs:
           trap 'rm -rf "$workdir"' EXIT
 
           upstream_url="https://github.com/${UPSTREAM_REPOSITORY}.git"
-
-          if [ -n "${FORK_REPO_TOKEN:-}" ]; then
-            fork_url="https://x-access-token:${FORK_REPO_TOKEN}@github.com/${FORK_REPOSITORY}.git"
-          else
-            fork_url="https://github.com/${FORK_REPOSITORY}.git"
-          fi
+          fork_url="https://github.com/${FORK_REPOSITORY}.git"
 
           git clone --no-tags --single-branch --branch "${UPSTREAM_BRANCH}" "${upstream_url}" "${workdir}/llama.cpp"
 

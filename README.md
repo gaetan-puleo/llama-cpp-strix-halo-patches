@@ -74,8 +74,6 @@ The workflow:
 7. pushes only if generated files changed
 ```
 
-If the fork repo is private, add a repo secret named `FORK_REPO_TOKEN` in this patch repo. The token only needs read access to `gaetan-puleo/llama-cpp-strix-halo`.
-
 If upstream changes conflict with the fork patches, the workflow fails and keeps the last working patch set.
 
 ## Notes
