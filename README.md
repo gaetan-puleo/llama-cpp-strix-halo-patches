@@ -1,28 +1,59 @@
-# RDNA3.5 Strix Halo llama.cpp patches
+# llama.cpp Strix Halo patches
 
-Patch set for applying local AMD Strix Halo / RDNA3.5 ROCm tuning to upstream `llama.cpp`.
+AMD Strix Halo / RDNA3.5 ROCm tuning patches for upstream `llama.cpp`.
 
-Base upstream commit:
+Target GPU: `gfx1151` / RDNA3.5.
 
-```text
-3fc4e1052 sched : reintroduce less synchronizations during split compute (#20793)
-```
+Tested with ROCm 7.2.4.
 
-Resulting tuned commit:
+## Easiest Local Apply
 
-```text
-d9172d620 ggml-cuda: add RDNA3.5 fast prefill path
-```
-
-## Patch series
-
-Apply the ordered series with commit history preserved:
+Clone this patch repo next to a fresh `llama.cpp` checkout:
 
 ```bash
-git am -3 /path/to/strix-halo-patches/000*.patch
+git clone https://github.com/ggerganov/llama.cpp.git
+git clone https://github.com/gaetan-puleo/llama-cpp-strix-halo-patches.git
 ```
 
-Files:
+Then apply the patch locally inside `llama.cpp`:
+
+```bash
+cd llama.cpp
+git checkout 3fc4e1052
+git switch -c strix-halo-rdna35
+git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch
+git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+```
+
+That is the recommended `git apply` path.
+
+## One Command
+
+If you are already inside a clean `llama.cpp` repo and this patch repo is next to it:
+
+```bash
+git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch && git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+```
+
+## Code Only
+
+Use this if you want the code changes without `STRIX_HALO_NOTES.md`:
+
+```bash
+git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-code-only.patch && git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+```
+
+## Keep The Original Commits
+
+The numbered files were generated with `git format-patch`.
+
+Use `git am`, not `git apply`, if you want to keep the original 7 commits:
+
+```bash
+git am -3 ../llama-cpp-strix-halo-patches/000*.patch
+```
+
+Patch files:
 
 ```text
 0001-ggml-cuda-tune-RDNA3.5-matmul-paths.patch
@@ -34,37 +65,25 @@ Files:
 0007-ggml-cuda-add-RDNA3.5-fast-prefill-path.patch
 ```
 
-## Combined patches
+## Base
 
-Apply all changes as one commit:
+These patches were made from this upstream `llama.cpp` commit:
 
-```bash
-git apply --index /path/to/strix-halo-patches/strix-halo-rdna35-combined.patch
-git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+```text
+3fc4e1052 sched : reintroduce less synchronizations during split compute (#20793)
 ```
 
-Apply code only, excluding `STRIX_HALO_NOTES.md`:
+Final tuned commit in my fork:
 
-```bash
-git apply --index /path/to/strix-halo-patches/strix-halo-rdna35-code-only.patch
-git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+```text
+d9172d620 ggml-cuda: add RDNA3.5 fast prefill path
 ```
+
+They may still apply to newer `llama.cpp`, but conflicts are possible.
 
 ## Notes
 
-- Target hardware: AMD Strix Halo / `gfx1151` / RDNA3.5.
-- Target stack used for testing: ROCm 7.2.4.
 - Keep runtime `-fa on` for the tested large-context paths.
 - Avoid `GGML_HIP_ROCWMMA_FATTN=ON` on `gfx1151`; it regressed FA in local testing.
-- Some changes are intentionally aggressive/private performance tuning and are not conservative precision-quality changes.
+- Some changes are aggressive performance tuning, not conservative precision-quality changes.
 - No AGPL code was copied into these patches.
-
-## Verification
-
-The patch series was verified locally with:
-
-```bash
-git apply --check strix-halo-rdna35-combined.patch
-git apply --check strix-halo-rdna35-code-only.patch
-git am 000*.patch
-```
