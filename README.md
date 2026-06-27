@@ -22,7 +22,6 @@ cd llama.cpp
 git checkout 3fc4e1052
 git switch -c strix-halo-rdna35
 git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch
-git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
 ```
 
 That is the recommended `git apply` path.
@@ -32,7 +31,7 @@ That is the recommended `git apply` path.
 If you are already inside a clean `llama.cpp` repo and this patch repo is next to it:
 
 ```bash
-git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch && git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch
 ```
 
 ## Code Only
@@ -40,7 +39,15 @@ git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combi
 Use this if you want the code changes without `STRIX_HALO_NOTES.md`:
 
 ```bash
-git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-code-only.patch && git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
+git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-code-only.patch
+```
+
+## Optional Commit
+
+`git apply` only changes your working tree and index. If you want to save the applied patch as one local commit, run this after applying:
+
+```bash
+git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
 ```
 
 ## Keep The Original Commits
