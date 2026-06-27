@@ -80,5 +80,4 @@ If upstream changes conflict with the fork patches, the workflow fails and keeps
 
 - Keep runtime `-fa on` for the tested large-context paths.
 - Avoid `GGML_HIP_ROCWMMA_FATTN=ON` on `gfx1151`; it regressed FA in local testing.
-- Some changes are aggressive performance tuning, not conservative precision-quality changes.
 - No AGPL code was copied into these patches.
