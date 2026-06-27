@@ -42,14 +42,6 @@ Use this if you want the code changes without `STRIX_HALO_NOTES.md`:
 git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-code-only.patch
 ```
 
-## Optional Commit
-
-`git apply` only changes your working tree and index. If you want to save the applied patch as one local commit, run this after applying:
-
-```bash
-git commit -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning"
-```
-
 ## Keep The Original Commits
 
 The numbered files were generated with `git format-patch`.
