@@ -34,14 +34,6 @@ If you are already inside a clean `llama.cpp` repo and this patch repo is next t
 git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch
 ```
 
-## Code Only
-
-Use this if you want the code changes without `STRIX_HALO_NOTES.md`:
-
-```bash
-git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-code-only.patch
-```
-
 ## Keep The Original Commits
 
 The numbered files were generated with `git format-patch`.
