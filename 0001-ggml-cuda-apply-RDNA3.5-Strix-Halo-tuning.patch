@@ -1,3 +1,22 @@
+From cc0fe49439e50ce9aea29fc23f74a5f4cf75e054 Mon Sep 17 00:00:00 2001
+From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
+Date: Sat, 27 Jun 2026 17:29:23 +0200
+Subject: [PATCH] ggml-cuda: apply RDNA3.5 Strix Halo tuning
+
+Generated from gaetan-puleo/llama-cpp-strix-halo:main on top of ggerganov/llama.cpp:master.
+
+Assisted-by: gpt-5.5
+---
+ STRIX_HALO_NOTES.md                   | 1064 +++++++++++++++++++++++++
+ ggml/src/ggml-cuda/concat.cu          |   17 +-
+ ggml/src/ggml-cuda/fattn-tile.cuh     |   19 +-
+ ggml/src/ggml-cuda/fattn-wmma-f16.cuh |    2 +-
+ ggml/src/ggml-cuda/gated_delta_net.cu |   35 +-
+ ggml/src/ggml-cuda/mmq.cuh            |   24 +-
+ ggml/src/ggml-cuda/mmvq.cu            |   41 +-
+ 7 files changed, 1172 insertions(+), 30 deletions(-)
+ create mode 100644 STRIX_HALO_NOTES.md
+
 diff --git a/STRIX_HALO_NOTES.md b/STRIX_HALO_NOTES.md
 new file mode 100644
 index 000000000..78f05b346
@@ -1425,3 +1444,8 @@ index fe44a58da..74cae020c 100644
      if (table_id == MMVQ_PARAMETERS_TURING) {
          if (ncols_dst == 1) {
              switch (type) {
+
+base-commit: 0ed235ea2c17a19fc8238668653946721ed136fd
+-- 
+2.54.0
+

@@ -18,6 +18,7 @@ env:
   FORK_REPOSITORY: gaetan-puleo/llama-cpp-strix-halo
   FORK_BRANCH: main
   COMBINED_PATCH: strix-halo-rdna35-combined.patch
+  PATCH_AUTHOR: "Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>"
 
 jobs:
   refresh:
@@ -62,10 +63,17 @@ jobs:
           git switch -c strix-halo-refresh "${upstream_ref}"
           git cherry-pick --empty=drop "${patch_commits[@]}"
 
+          git reset --soft "${upstream_ref}"
+          git commit \
+            --author="${PATCH_AUTHOR}" \
+            -m "ggml-cuda: apply RDNA3.5 Strix Halo tuning" \
+            -m "Generated from ${FORK_REPOSITORY}:${FORK_BRANCH} on top of ${UPSTREAM_REPOSITORY}:${UPSTREAM_BRANCH}." \
+            -m "Assisted-by: gpt-5.5"
+
           rm -f "${GITHUB_WORKSPACE}"/000*.patch
           rm -f "${GITHUB_WORKSPACE}/${COMBINED_PATCH}"
 
-          git format-patch --base="${upstream_ref}" -o "${GITHUB_WORKSPACE}" "${upstream_ref}..HEAD"
+          git format-patch --base="${upstream_ref}" -o "${GITHUB_WORKSPACE}" -1 HEAD
           git diff --binary "${upstream_ref}..HEAD" > "${GITHUB_WORKSPACE}/${COMBINED_PATCH}"
 
           verify_apply="${workdir}/verify-apply"

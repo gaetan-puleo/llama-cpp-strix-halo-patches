@@ -30,9 +30,9 @@ git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combi
 
 ## Keep Commit History
 
-The numbered files are generated with `git format-patch`.
+The numbered patch file is generated with `git format-patch`.
 
-Use `git am`, not `git apply`, if you want the patch series as separate commits:
+Use `git am`, not `git apply`, if you want to apply it as a commit:
 
 ```bash
 git am -3 ../llama-cpp-strix-halo-patches/000*.patch
@@ -42,13 +42,7 @@ git am -3 ../llama-cpp-strix-halo-patches/000*.patch
 
 ```text
 strix-halo-rdna35-combined.patch
-0001-ggml-cuda-tune-RDNA3.5-matmul-paths.patch
-0002-ggml-cuda-apply-RDNA3.5-Strix-Halo-tuning.patch
-0003-ggml-cuda-tune-RDNA3.5-MoE-paths.patch
-0004-docs-add-Strix-Halo-optimization-notes.patch
-0005-ggml-cuda-tune-RDNA3.5-MMVQ-warps.patch
-0006-ggml-cuda-tune-RDNA3.5-MoE-prefill.patch
-0007-ggml-cuda-add-RDNA3.5-fast-prefill-path.patch
+000*.patch
 ```
 
 ## Automatic Refresh
@@ -68,10 +62,11 @@ The workflow:
 1. checks out latest upstream master
 2. fetches the fork branch
 3. cherry-picks fork-only commits onto upstream master
-4. regenerates the combined git-apply patch
-5. regenerates the numbered git-format-patch series
-6. verifies git apply and git am
-7. pushes only if generated files changed
+4. squashes the final tree into one generated patch commit
+5. regenerates the combined git-apply patch
+6. regenerates the git-format-patch file
+7. verifies git apply and git am
+8. pushes only if generated files changed
 ```
 
 If upstream changes conflict with the fork patches, the workflow fails and keeps the last working patch set.
