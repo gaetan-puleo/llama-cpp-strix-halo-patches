@@ -1,4 +1,4 @@
-From 3061bcfd3d8acfbf1b9d4f28315c37edf4e7a449 Mon Sep 17 00:00:00 2001
+From 6320b985ae4ae5a6fc0e5441f8e64fffa70e5d2f Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
 Date: Sat, 27 Jun 2026 12:53:19 +0200
 Subject: [PATCH 6/7] ggml-cuda: tune RDNA3.5 MoE prefill

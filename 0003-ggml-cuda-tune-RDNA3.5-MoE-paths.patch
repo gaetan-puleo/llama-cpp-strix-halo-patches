@@ -1,4 +1,4 @@
-From 02c1a26fdb293c3e8a129081cbf270dee566c4a2 Mon Sep 17 00:00:00 2001
+From b646b57d8930c4e70e3f7e1837afbc50383cb9ab Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
 Date: Sat, 27 Jun 2026 01:45:48 +0200
 Subject: [PATCH 3/7] ggml-cuda: tune RDNA3.5 MoE paths

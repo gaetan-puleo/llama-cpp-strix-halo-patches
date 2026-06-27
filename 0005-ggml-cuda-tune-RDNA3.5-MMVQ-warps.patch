@@ -1,4 +1,4 @@
-From ad87df936512eab27b85e735af8bece29a80ef4a Mon Sep 17 00:00:00 2001
+From 970b48a0b0141f76e8224ac2058cde17a3845d67 Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
 Date: Sat, 27 Jun 2026 04:32:54 +0200
 Subject: [PATCH 5/7] ggml-cuda: tune RDNA3.5 MMVQ warps
