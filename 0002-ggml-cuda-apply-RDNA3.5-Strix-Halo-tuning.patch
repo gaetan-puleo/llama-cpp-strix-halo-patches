@@ -1,0 +1,129 @@
+From e8c65e3543f36bb6e2bbdeb1544e20961db77c25 Mon Sep 17 00:00:00 2001
+From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
+Date: Fri, 26 Jun 2026 21:38:13 +0200
+Subject: [PATCH 2/7] ggml-cuda: apply RDNA3.5 Strix Halo tuning
+
+Tune MMQ tile dimensions for RDNA3.5 and avoid routing RDNA3.5 flash attention to the rocWMMA kernel.
+
+Based on llama.cpp issues #21284 and #24437 and PRs #24022 and #24562.
+
+Assisted-by: gpt-5.5
+---
+ ggml/src/ggml-cuda/fattn-tile.cuh     |  4 ++--
+ ggml/src/ggml-cuda/fattn-wmma-f16.cuh |  2 +-
+ ggml/src/ggml-cuda/mmq.cuh            | 26 +++++++++++++++++---------
+ 3 files changed, 20 insertions(+), 12 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn-tile.cuh b/ggml/src/ggml-cuda/fattn-tile.cuh
+index 0a099810e..4d0e7b0b4 100644
+--- a/ggml/src/ggml-cuda/fattn-tile.cuh
++++ b/ggml/src/ggml-cuda/fattn-tile.cuh
+@@ -822,9 +822,9 @@ static __global__ void flash_attn_tile(
+     // Skip unused kernel variants for faster compilation:
+ 
+     if (
+-#ifdef GGML_USE_WMMA_FATTN
++#if defined(GGML_USE_WMMA_FATTN) && !defined(RDNA3_5)
+             (ncols2 != 1 && DV != 40 && DV != 72 && DV != 512) ||
+-#endif // GGML_USE_WMMA_FATTN
++#endif // defined(GGML_USE_WMMA_FATTN) && !defined(RDNA3_5)
+             (use_logit_softcap && !(DV == 128 || DV == 256 || DV == 512))
+     ) {
+         GGML_UNUSED_VARS(Q, K, V, mask, sinks, KV_max, dst, dst_meta, scale,
+diff --git a/ggml/src/ggml-cuda/fattn-wmma-f16.cuh b/ggml/src/ggml-cuda/fattn-wmma-f16.cuh
+index aaf711a61..af3116b09 100644
+--- a/ggml/src/ggml-cuda/fattn-wmma-f16.cuh
++++ b/ggml/src/ggml-cuda/fattn-wmma-f16.cuh
+@@ -28,7 +28,7 @@ static bool ggml_cuda_should_use_wmma_fattn(const int cc) {
+     return false;
+ #else
+     if ((GGML_CUDA_CC_IS_NVIDIA(cc) && ggml_cuda_highest_compiled_arch(cc) == GGML_CUDA_CC_VOLTA) ||
+-        GGML_CUDA_CC_IS_RDNA3(cc) || GGML_CUDA_CC_IS_MTHREADS(cc)) {
++        GGML_CUDA_CC_IS_RDNA3_0(cc) || GGML_CUDA_CC_IS_MTHREADS(cc)) {
+         return true;
+     } else if (GGML_CUDA_CC_IS_CDNA(cc)){
+ #if defined(GGML_HIP_ROCWMMA_FATTN) && (ROCWMMA_VERSION_MAJOR < 2 || ROCWMMA_VERSION_MINOR > 0 || ROCWMMA_VERSION_PATCH > 0)
+diff --git a/ggml/src/ggml-cuda/mmq.cuh b/ggml/src/ggml-cuda/mmq.cuh
+index b6cbb5230..0ba9ca692 100644
+--- a/ggml/src/ggml-cuda/mmq.cuh
++++ b/ggml/src/ggml-cuda/mmq.cuh
+@@ -107,6 +107,7 @@ struct tile_x_sizes {
+ };
+ 
+ static int get_mmq_x_max_host(const int cc) {
++    if (GGML_CUDA_CC_IS_RDNA3_5(cc)) { return 64; }
+     return (turing_mma_available(cc) || amd_wmma_available(cc)) ? 128 :
+         GGML_CUDA_CC_IS_NVIDIA(cc) && ggml_cuda_highest_compiled_arch(cc) >= GGML_CUDA_CC_VOLTA ?
+ #ifdef GGML_CUDA_FORCE_MMQ
+@@ -117,7 +118,9 @@ static int get_mmq_x_max_host(const int cc) {
+ }
+ 
+ static constexpr __device__ int get_mmq_x_max_device() {
+-#if defined(TURING_MMA_AVAILABLE) || defined(AMD_WMMA_AVAILABLE)
++#if defined(RDNA3_5)
++    return 64;
++#elif defined(TURING_MMA_AVAILABLE) || defined(AMD_WMMA_AVAILABLE)
+     return 128;
+ #else // defined(TURING_MMA_AVAILABLE) || defined(AMD_WMMA_AVAILABLE)
+ 
+@@ -140,7 +143,7 @@ static constexpr __device__ int get_mmq_x_max_device() {
+ }
+ 
+ static int get_mmq_y_host(const int cc) {
+-    return GGML_CUDA_CC_IS_AMD(cc) ? (GGML_CUDA_CC_IS_RDNA1(cc) ? 64 : 128) :
++    return GGML_CUDA_CC_IS_AMD(cc) ? ((GGML_CUDA_CC_IS_RDNA1(cc) || GGML_CUDA_CC_IS_RDNA3_5(cc)) ? 64 : 128) :
+         ((GGML_CUDA_CC_IS_NVIDIA(cc) && ggml_cuda_highest_compiled_arch(cc) >= GGML_CUDA_CC_VOLTA) ? 128 : 64);
+ }
+ 
+@@ -150,19 +153,16 @@ if (type == GGML_TYPE_NVFP4 || type == GGML_TYPE_MXFP4) {
+     return MMQ_ITER_K_FP4;
+ }
+ #endif // defined(BLACKWELL_MMA_AVAILABLE)
+-#if defined(RDNA3_5)
+-    return 2*MMQ_ITER_K;
+-#endif // defined(RDNA3_5)
+     return MMQ_ITER_K;
+ }
+ 
+ static constexpr __device__ int get_mmq_y_device() {
+ #if defined(GGML_USE_HIP)
+-#if defined(RDNA1)
++#if defined(RDNA1) || defined(RDNA3_5)
+     return 64;
+ #else
+     return 128;
+-#endif // defined RDNA1
++#endif // defined(RDNA1) || defined(RDNA3_5)
+ #else
+ #if __CUDA_ARCH__ >= GGML_CUDA_CC_VOLTA
+     return 128;
+@@ -299,7 +299,9 @@ static constexpr __device__ int mmq_get_granularity_device(const int /*mmq_x*/)
+ 
+ #if defined(GGML_USE_HIP)
+ static int mmq_get_nwarps_host(const int cc, const int warp_size) {
+-    return amd_mfma_available(cc) ? 8 : 256/warp_size;
++    if (amd_mfma_available(cc)) { return 8; }
++    if (GGML_CUDA_CC_IS_RDNA3_5(cc)) { return 4; }
++    return 256/warp_size;
+ }
+ #else
+ static int mmq_get_nwarps_host(const int /*cc*/, const int warp_size) {
+@@ -308,8 +310,14 @@ static int mmq_get_nwarps_host(const int /*cc*/, const int warp_size) {
+ #endif // (GGML_USE_HIP)
+ 
+ static constexpr __device__ int mmq_get_nwarps_device() {
+-#if defined(AMD_MFMA_AVAILABLE) || defined(AMD_WMMA_AVAILABLE)
++#if defined(AMD_MFMA_AVAILABLE)
+     return 8;
++#elif defined(AMD_WMMA_AVAILABLE)
++#if defined(RDNA3_5)
++    return 4;
++#else
++    return 8;
++#endif // defined(RDNA3_5)
+ #else
+     return 256/ggml_cuda_get_physical_warp_size();
+ #endif // AMD_MFMA_AVAILABLE
+-- 
+2.54.0
+
