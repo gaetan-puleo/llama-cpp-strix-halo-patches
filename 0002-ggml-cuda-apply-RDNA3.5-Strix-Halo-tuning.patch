@@ -1,4 +1,4 @@
-From e8c65e3543f36bb6e2bbdeb1544e20961db77c25 Mon Sep 17 00:00:00 2001
+From a242b9cbb8be280dce8b03ac91ab9068b82a70e8 Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
 Date: Fri, 26 Jun 2026 21:38:13 +0200
 Subject: [PATCH 2/7] ggml-cuda: apply RDNA3.5 Strix Halo tuning

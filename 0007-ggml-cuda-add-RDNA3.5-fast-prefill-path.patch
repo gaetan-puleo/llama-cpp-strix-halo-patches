@@ -1,4 +1,4 @@
-From d9172d6202bdcd5e1aced0f55bf477b67f9a200b Mon Sep 17 00:00:00 2001
+From 84029ebad2a95adaaf55ee2b81ae7bae00a76bcd Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
 Date: Sat, 27 Jun 2026 15:21:28 +0200
 Subject: [PATCH 7/7] ggml-cuda: add RDNA3.5 fast prefill path

@@ -1,4 +1,4 @@
-From 55e43620b53280c5eb01f3087ae15157d00e9fa3 Mon Sep 17 00:00:00 2001
+From b660c5771db0db72d4df2773568b852e96abbe29 Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
 Date: Fri, 26 Jun 2026 21:29:35 +0200
 Subject: [PATCH 1/7] ggml-cuda: tune RDNA3.5 matmul paths
@@ -97,7 +97,7 @@ index fe44a58da..e09f1155f 100644
          if (ncols_dst == 1) {
              switch (type) {
 
-base-commit: 3fc4e105279105106b08a133a4e3e483116e621f
+base-commit: 0ed235ea2c17a19fc8238668653946721ed136fd
 -- 
 2.54.0
 

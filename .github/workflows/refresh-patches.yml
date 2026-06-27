@@ -1,0 +1,102 @@
+name: Refresh patches
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-patches
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPOSITORY: ggerganov/llama.cpp
+  UPSTREAM_BRANCH: master
+  FORK_REPOSITORY: gaetan-puleo/llama-cpp-strix-halo
+  FORK_BRANCH: main
+  COMBINED_PATCH: strix-halo-rdna35-combined.patch
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout patch repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate patches
+        env:
+          FORK_REPO_TOKEN: ${{ secrets.FORK_REPO_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+
+          upstream_url="https://github.com/${UPSTREAM_REPOSITORY}.git"
+
+          if [ -n "${FORK_REPO_TOKEN:-}" ]; then
+            fork_url="https://x-access-token:${FORK_REPO_TOKEN}@github.com/${FORK_REPOSITORY}.git"
+          else
+            fork_url="https://github.com/${FORK_REPOSITORY}.git"
+          fi
+
+          git clone --no-tags --single-branch --branch "${UPSTREAM_BRANCH}" "${upstream_url}" "${workdir}/llama.cpp"
+
+          cd "${workdir}/llama.cpp"
+          git remote add fork "${fork_url}"
+          git fetch --no-tags fork "${FORK_BRANCH}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          upstream_ref="origin/${UPSTREAM_BRANCH}"
+          fork_ref="fork/${FORK_BRANCH}"
+
+          mapfile -t patch_commits < <(git rev-list --reverse "${upstream_ref}..${fork_ref}")
+
+          if [ "${#patch_commits[@]}" -eq 0 ]; then
+            echo "No fork commits found on ${FORK_REPOSITORY}:${FORK_BRANCH} relative to ${UPSTREAM_REPOSITORY}:${UPSTREAM_BRANCH}."
+            exit 1
+          fi
+
+          git switch -c strix-halo-refresh "${upstream_ref}"
+          git cherry-pick --empty=drop "${patch_commits[@]}"
+
+          rm -f "${GITHUB_WORKSPACE}"/000*.patch
+          rm -f "${GITHUB_WORKSPACE}/${COMBINED_PATCH}"
+
+          git format-patch --base="${upstream_ref}" -o "${GITHUB_WORKSPACE}" "${upstream_ref}..HEAD"
+          git diff --binary "${upstream_ref}..HEAD" > "${GITHUB_WORKSPACE}/${COMBINED_PATCH}"
+
+          verify_apply="${workdir}/verify-apply"
+          git worktree add --detach "${verify_apply}" "${upstream_ref}"
+          git -C "${verify_apply}" apply --check --3way --index "${GITHUB_WORKSPACE}/${COMBINED_PATCH}"
+          git worktree remove "${verify_apply}"
+
+          verify_am="${workdir}/verify-am"
+          git worktree add --detach "${verify_am}" "${upstream_ref}"
+          git -C "${verify_am}" am -3 "${GITHUB_WORKSPACE}"/000*.patch
+          git worktree remove "${verify_am}"
+
+      - name: Commit refreshed patches
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Patches are already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Refresh patches from llama.cpp master"
+          git push

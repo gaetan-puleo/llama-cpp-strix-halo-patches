@@ -6,47 +6,42 @@ Target GPU: `gfx1151` / RDNA3.5.
 
 Tested with ROCm 7.2.4.
 
-## Easiest Local Apply
+## Apply Locally
 
-Clone this patch repo next to a fresh `llama.cpp` checkout:
+Clone `llama.cpp` and this patch repo next to each other:
 
 ```bash
 git clone https://github.com/ggerganov/llama.cpp.git
 git clone https://github.com/gaetan-puleo/llama-cpp-strix-halo-patches.git
 ```
 
-Then apply the patch locally inside `llama.cpp`:
+Apply the combined patch inside `llama.cpp`:
 
 ```bash
 cd llama.cpp
-git checkout 3fc4e1052
-git switch -c strix-halo-rdna35
 git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch
 ```
 
-That is the recommended `git apply` path.
-
-## One Command
-
-If you are already inside a clean `llama.cpp` repo and this patch repo is next to it:
+If you are already inside a clean `llama.cpp` checkout and the patch repo is next to it:
 
 ```bash
 git apply --3way --index ../llama-cpp-strix-halo-patches/strix-halo-rdna35-combined.patch
 ```
 
-## Keep The Original Commits
+## Keep Commit History
 
-The numbered files were generated with `git format-patch`.
+The numbered files are generated with `git format-patch`.
 
-Use `git am`, not `git apply`, if you want to keep the original 7 commits:
+Use `git am`, not `git apply`, if you want the patch series as separate commits:
 
 ```bash
 git am -3 ../llama-cpp-strix-halo-patches/000*.patch
 ```
 
-Patch files:
+## Files
 
 ```text
+strix-halo-rdna35-combined.patch
 0001-ggml-cuda-tune-RDNA3.5-matmul-paths.patch
 0002-ggml-cuda-apply-RDNA3.5-Strix-Halo-tuning.patch
 0003-ggml-cuda-tune-RDNA3.5-MoE-paths.patch
@@ -56,21 +51,32 @@ Patch files:
 0007-ggml-cuda-add-RDNA3.5-fast-prefill-path.patch
 ```
 
-## Base
+## Automatic Refresh
 
-These patches were made from this upstream `llama.cpp` commit:
+GitHub Actions regenerates the patches every 12 hours and can also be run manually.
 
-```text
-3fc4e1052 sched : reintroduce less synchronizations during split compute (#20793)
-```
-
-Final tuned commit in my fork:
+Source repos:
 
 ```text
-d9172d620 ggml-cuda: add RDNA3.5 fast prefill path
+upstream: ggerganov/llama.cpp:master
+fork:     gaetan-puleo/llama-cpp-strix-halo:main
 ```
 
-They may still apply to newer `llama.cpp`, but conflicts are possible.
+The workflow:
+
+```text
+1. checks out latest upstream master
+2. fetches the fork branch
+3. cherry-picks fork-only commits onto upstream master
+4. regenerates the combined git-apply patch
+5. regenerates the numbered git-format-patch series
+6. verifies git apply and git am
+7. pushes only if generated files changed
+```
+
+If the fork repo is private, add a repo secret named `FORK_REPO_TOKEN` in this patch repo. The token only needs read access to `gaetan-puleo/llama-cpp-strix-halo`.
+
+If upstream changes conflict with the fork patches, the workflow fails and keeps the last working patch set.
 
 ## Notes
 
