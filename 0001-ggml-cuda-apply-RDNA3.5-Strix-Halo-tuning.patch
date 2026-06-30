@@ -1,6 +1,6 @@
-From e47b1016bfbb061e070863755ebe85fcdeac655b Mon Sep 17 00:00:00 2001
+From 4966e7ded0150b586fa1f79a780cdabcbf6d3649 Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
-Date: Tue, 30 Jun 2026 02:02:48 +0000
+Date: Tue, 30 Jun 2026 13:51:04 +0000
 Subject: [PATCH] ggml-cuda: apply RDNA3.5 Strix Halo tuning
 
 Generated from gaetan-puleo/llama-cpp-strix-halo:main on top of ggerganov/llama.cpp:master.
@@ -1129,10 +1129,10 @@ index 8d557092b..5a42f873f 100644
          *y = *x;
      }
 diff --git a/ggml/src/ggml-cuda/fattn-tile.cuh b/ggml/src/ggml-cuda/fattn-tile.cuh
-index 0a099810e..e596ea076 100644
+index 3e07a9f7e..524ab6e54 100644
 --- a/ggml/src/ggml-cuda/fattn-tile.cuh
 +++ b/ggml/src/ggml-cuda/fattn-tile.cuh
-@@ -309,8 +309,17 @@ static constexpr __host__ __device__ uint32_t ggml_cuda_fattn_tile_get_config_am
+@@ -313,8 +313,17 @@ static constexpr __host__ __device__ uint32_t ggml_cuda_fattn_tile_get_config_am
      return 0;
  }
  
@@ -1150,7 +1150,7 @@ index 0a099810e..e596ea076 100644
          if (GGML_CUDA_CC_IS_RDNA(cc)) {
              return ggml_cuda_fattn_tile_get_config_amd_rdna(DKQ, DV, ncols);
          }
-@@ -324,11 +333,13 @@ static __host__ uint32_t ggml_cuda_fattn_tile_get_config(const int DKQ, const in
+@@ -328,11 +337,13 @@ static __host__ uint32_t ggml_cuda_fattn_tile_get_config(const int DKQ, const in
  
  static constexpr __device__ uint32_t ggml_cuda_fattn_tile_get_config(const int DKQ, const int DV, const int ncols) {
  #ifdef GGML_USE_HIP
@@ -1166,7 +1166,7 @@ index 0a099810e..e596ea076 100644
  #else
  #ifdef FAST_FP16_AVAILABLE
      return ggml_cuda_fattn_tile_get_config_nvidia_fp16(DKQ, DV, ncols);
-@@ -822,9 +833,9 @@ static __global__ void flash_attn_tile(
+@@ -826,9 +837,9 @@ static __global__ void flash_attn_tile(
      // Skip unused kernel variants for faster compilation:
  
      if (
@@ -1445,7 +1445,7 @@ index fe44a58da..74cae020c 100644
          if (ncols_dst == 1) {
              switch (type) {
 
-base-commit: 86b94708f22478f900b76ca02e316f4f3418faff
+base-commit: 931eb37f8cac5a6ca84d5641445d460af2a9d7dd
 -- 
 2.54.0
 
