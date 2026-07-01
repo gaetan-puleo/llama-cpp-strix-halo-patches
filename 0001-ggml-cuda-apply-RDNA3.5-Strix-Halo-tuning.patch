@@ -1,6 +1,6 @@
-From ea30f847aa5aa0db7fb76613487288ef0b91970a Mon Sep 17 00:00:00 2001
+From 507d7dd5246a934508546855e3e69dd54e67682e Mon Sep 17 00:00:00 2001
 From: Gaetan Puleo <12990773+gaetan-puleo@users.noreply.github.com>
-Date: Wed, 1 Jul 2026 02:08:30 +0000
+Date: Wed, 1 Jul 2026 14:02:19 +0000
 Subject: [PATCH] ggml-cuda: apply RDNA3.5 Strix Halo tuning
 
 Generated from gaetan-puleo/llama-cpp-strix-halo:main on top of ggerganov/llama.cpp:master.
@@ -1445,7 +1445,7 @@ index fe44a58da..74cae020c 100644
          if (ncols_dst == 1) {
              switch (type) {
 
-base-commit: 0eca4d490e591d4e93058d07540cf47278a72577
+base-commit: 13e673863b36993d9e80c0a9ee3c1e02f8b9ace4
 -- 
 2.54.0
 
